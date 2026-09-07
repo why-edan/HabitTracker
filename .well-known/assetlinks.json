@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.habit_tracker_ten_mu_90.twa",
+        "sha256_cert_fingerprints": ["0A:2D:EB:01:07:20:F5:E8:54:5B:D1:B2:C6:79:D3:96:F3:48:14:2F:71:8F:0B:82:3E:66:BF:36:97:3A:43:A3"]
+      }
+    }]
