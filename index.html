@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Habit Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">PERSONAL DASHBOARD</div>
+        <h1>My Habits</h1>
+        <p id="summary">Build consistency, one day at a time.</p>
+      </div>
+
+      <div class="month-controls">
+        <button id="prevMonth" class="nav-btn" aria-label="Previous month">‹</button>
+        <div>
+          <div id="monthLabel" class="month-label"></div>
+          <div id="yearLabel" class="year-label"></div>
+        </div>
+        <button id="nextMonth" class="nav-btn" aria-label="Next month">›</button>
+      </div>
+    </header>
+
+    <section class="stats">
+      <div class="stat-card">
+        <span>MONTHLY COMPLETION</span>
+        <strong id="completion">0%</strong>
+      </div>
+      <div class="stat-card">
+        <span>BEST STREAK</span>
+        <strong id="bestStreak">0 days 🔥</strong>
+      </div>
+      <div class="stat-card">
+        <span>COMPLETED TODAY</span>
+        <strong id="todayCount">0 / 0</strong>
+      </div>
+    </section>
+
+    <section class="tracker-card">
+      <div class="tracker-toolbar">
+        <div>
+          <h2>Daily Tracker</h2>
+          <span id="daysHint">Click a box to mark a habit complete.</span>
+        </div>
+        <button id="addHabit" class="primary-btn">+ Add habit</button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="habitTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="legend">
+        <span><i class="legend-box done"></i> Completed</span>
+        <span><i class="legend-box today"></i> Today</span>
+        <span>Data is saved automatically in this browser.</span>
+      </div>
+    </section>
+
+    <footer>
+      <button id="todayBtn" class="text-btn">Jump to today</button>
+      <button id="resetBtn" class="text-btn danger">Reset all data</button>
+    </footer>
+  </main>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <button id="closeModal" class="close">×</button>
+      <h3>Add a habit</h3>
+      <p>Keep it simple. Pick something you can realistically track every day.</p>
+      <input id="habitName" type="text" maxlength="40" placeholder="e.g. 🏋️ Gym">
+      <div class="modal-actions">
+        <button id="cancelAdd" class="secondary-btn">Cancel</button>
+        <button id="saveHabit" class="primary-btn">Add habit</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
