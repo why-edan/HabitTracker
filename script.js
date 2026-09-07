@@ -1,4 +1,25 @@
-const STORAGE_KEY = "my-habit-tracker-v1";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4I0aYiQ2XVfUnDj2K_avXUtQa2hUIuZY",
+  authDomain: "habittracker-10264.firebaseapp.com",
+  projectId: "habittracker-10264",
+  storageBucket: "habittracker-10264.firebasestorage.app",
+  messagingSenderId: "1076569237929",
+  appId: "1:1076569237929:web:e6320b55672d187b873cb8",
+  measurementId: "G-VZGMWXRBRD"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const docRef = doc(db, "habitTracker", "sharedData");
 
 const defaultHabits = [
   { id: crypto.randomUUID(), name: "🌅 Wake up by 5:00" },
@@ -10,8 +31,9 @@ const defaultHabits = [
   { id: crypto.randomUUID(), name: "😴 7+ Hours Sleep" }
 ];
 
-const state = loadState();
+let state = { habits: defaultHabits, checks: {} };
 let viewDate = new Date();
+let isRemoteUpdate = false;
 
 const monthLabel = document.getElementById("monthLabel");
 const yearLabel = document.getElementById("yearLabel");
@@ -21,17 +43,32 @@ const completionEl = document.getElementById("completion");
 const bestStreakEl = document.getElementById("bestStreak");
 const todayCountEl = document.getElementById("todayCount");
 
-function loadState() {
+async function saveState() {
+  isRemoteUpdate = true;
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (saved && Array.isArray(saved.habits) && saved.checks) return saved;
-  } catch (e) {}
-  return { habits: defaultHabits, checks: {} };
+    await setDoc(docRef, state);
+  } catch (e) {
+    console.error("Failed to save to Firestore", e);
+  }
 }
 
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+// Live sync: whenever Firestore data changes (from any device), update UI
+onSnapshot(docRef, snap => {
+  if (isRemoteUpdate) {
+    isRemoteUpdate = false;
+    return;
+  }
+  if (snap.exists()) {
+    const data = snap.data();
+    if (Array.isArray(data.habits) && data.checks) {
+      state = data;
+      render();
+    }
+  } else {
+    // First time ever — seed Firestore with defaults
+    setDoc(docRef, state);
+  }
+});
 
 function pad(n) {
   return String(n).padStart(2, "0");
@@ -39,10 +76,6 @@ function pad(n) {
 
 function keyFor(habitId, year, month, day) {
   return `${habitId}|${year}-${pad(month + 1)}-${pad(day)}`;
-}
-
-function dateKey(date) {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 function daysInMonth(year, month) {
@@ -159,8 +192,6 @@ function calculateBestStreak() {
 
   let best = 0;
   const today = new Date();
-
-  // Look at the last 365 days and count days where all habits were completed.
   let streak = 0;
 
   for (let offset = 0; offset < 365; offset++) {
@@ -270,8 +301,9 @@ function addHabit() {
 
 document.getElementById("resetBtn").addEventListener("click", () => {
   if (confirm("This will delete all habits and checkmarks. Are you sure?")) {
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
+    state = { habits: [], checks: {} };
+    saveState();
+    render();
   }
 });
 
