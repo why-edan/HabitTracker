@@ -31,10 +31,69 @@ const defaultHabits = [
   { id: crypto.randomUUID(), name: "😴 7+ Hours Sleep" }
 ];
 
-let state = { habits: [], checks: {} };
+function ex(name, sets) {
+  return { id: crypto.randomUUID(), name, sets };
+}
+
+const defaultSchedule = [
+  { id: crypto.randomUUID(), title: "Day 1 - Push", exercises: [
+    ex("Barbell Bench Press", "3 x 5-8"),
+    ex("Incline Dumbbell Press", "3 x 8-10"),
+    ex("Dumbbell Shoulder Press", "3 x 6-10"),
+    ex("Cable Lateral Raises", "3 x 12-15"),
+    ex("Cable Fly", "2 x 10-15"),
+    ex("Overhead Tricep Ext.", "3 x 8-12"),
+    ex("Tricep Dips", "2 x 10-12")
+  ]},
+  { id: crypto.randomUUID(), title: "Day 2 - Pull", exercises: [
+    ex("Lat Pulldown", "3 x 6-10"),
+    ex("Chest-Supported Rows", "3 x 6-10"),
+    ex("Single-Arm Cable Pulldown", "2 x 8-12"),
+    ex("Reverse Pec Deck", "3 x 12-20"),
+    ex("Incline Dumbbell Curls", "3 x 8-12"),
+    ex("Hammer Curls", "3 x 8-12")
+  ]},
+  { id: crypto.randomUUID(), title: "Day 3 - Legs", exercises: [
+    ex("Back Squats", "3 x 5-8"),
+    ex("Romanian Deadlift", "3 x 6-10"),
+    ex("Leg Press", "3 x 8-12"),
+    ex("Leg Curl", "3 x 10-15"),
+    ex("Leg Extension", "3 x 10-15"),
+    ex("Calf Raises", "3 x 8-15")
+  ]},
+  { id: crypto.randomUUID(), title: "Day 4 - Chest + Back", exercises: [
+    ex("Incline Barbell Press", "3 x 6-10"),
+    ex("Flat Dumbbell Press", "3 x 8-12"),
+    ex("Low-to-High Cable Fly", "3 x 12-15"),
+    ex("Lat Pulldown [Neutral]", "3 x 6-10"),
+    ex("Chest-Supported T-Bar Row", "2 x 8-12"),
+    ex("Straight-Arm Cable Pulldown", "3 x 12-15")
+  ]},
+  { id: crypto.randomUUID(), title: "Day 5 - Shoulders + Arms", exercises: [
+    ex("Dumbbell Shoulder Press", "3 x 6-10"),
+    ex("Cable Lateral Raises", "4 x 12-15"),
+    ex("Dumbbell Shrugs", "3 x 8-12"),
+    ex("Cable Pressdown", "3 x 10-12"),
+    ex("Overhead Skull Crusher", "3 x 8-10"),
+    ex("Hammer Curls", "2 x 10-15"),
+    ex("Dumbbell Curls (finisher)", "2 x 12-15")
+  ]},
+  { id: crypto.randomUUID(), title: "Day 6 - Legs + Core", exercises: [
+    ex("Hack Squats", "3 x 6-10"),
+    ex("Romanian Deadlift", "3 x 6-10"),
+    ex("Leg Extension", "3 x 12-15"),
+    ex("Leg Curl", "3 x 12-15"),
+    ex("Calf Raises", "3 x 12-15"),
+    ex("Cable Crunches", "3 x 10-15"),
+    ex("Hanging Leg Raises", "3 x 8-15")
+  ]}
+];
+
+let state = { habits: [], checks: {}, pplSchedule: [] };
 let viewDate = new Date();
 let isRemoteUpdate = false;
 let loaded = false;
+let currentDayIndex = 0;
 
 const monthLabel = document.getElementById("monthLabel");
 const yearLabel = document.getElementById("yearLabel");
@@ -53,6 +112,12 @@ async function saveState() {
   }
 }
 
+function normalizeState() {
+  if (!Array.isArray(state.pplSchedule) || !state.pplSchedule.length) {
+    state.pplSchedule = defaultSchedule;
+  }
+}
+
 // Live sync: whenever Firestore data changes (from any device), update UI
 onSnapshot(docRef, snap => {
   if (isRemoteUpdate) {
@@ -63,15 +128,18 @@ onSnapshot(docRef, snap => {
     const data = snap.data();
     if (Array.isArray(data.habits) && data.checks) {
       state = data;
+      normalizeState();
       loaded = true;
       render();
+      renderSchedule();
     }
   } else {
     // First time ever — seed Firestore with defaults
-    state = { habits: defaultHabits, checks: {} };
+    state = { habits: defaultHabits, checks: {}, pplSchedule: defaultSchedule };
     loaded = true;
     setDoc(docRef, state);
     render();
+    renderSchedule();
   }
 });
 
@@ -310,20 +378,130 @@ function addHabit() {
 
 document.getElementById("resetBtn").addEventListener("click", () => {
   if (confirm("This will delete all habits and checkmarks. Are you sure?")) {
-    state = { habits: [], checks: {} };
+    state.habits = [];
+    state.checks = {};
     saveState();
     render();
   }
 });
 
+/* ---------------- PPL Schedule view ---------------- */
+
+const habitView = document.getElementById("habitView");
+const scheduleView = document.getElementById("scheduleView");
+const dayTabsEl = document.getElementById("dayTabs");
+const dayTitleEl = document.getElementById("dayTitle");
+const scheduleBody = document.getElementById("scheduleBody");
+
+document.getElementById("scheduleBtn").addEventListener("click", () => {
+  habitView.classList.add("hidden");
+  scheduleView.classList.remove("hidden");
+  currentDayIndex = 0;
+  renderSchedule();
+});
+
+document.getElementById("backToHabits").addEventListener("click", () => {
+  scheduleView.classList.add("hidden");
+  habitView.classList.remove("hidden");
+});
+
+function renderSchedule() {
+  if (!loaded || !state.pplSchedule.length) return;
+
+  if (currentDayIndex >= state.pplSchedule.length) currentDayIndex = 0;
+  const day = state.pplSchedule[currentDayIndex];
+
+  dayTabsEl.innerHTML = state.pplSchedule.map((d, i) => `
+    <button class="day-tab${i === currentDayIndex ? " active" : ""}" data-day-index="${i}">
+      ${escapeHtml(d.title)}
+    </button>
+  `).join("");
+
+  dayTitleEl.textContent = day.title;
+
+  scheduleBody.innerHTML = day.exercises.map(exercise => `
+    <tr>
+      <td class="ex-name-cell">
+        <input
+          class="ex-input name-input"
+          data-exercise="${exercise.id}"
+          value="${escapeAttr(exercise.name)}"
+          placeholder="Exercise name">
+      </td>
+      <td>
+        <input
+          class="ex-input sets-input"
+          data-exercise="${exercise.id}"
+          value="${escapeAttr(exercise.sets)}"
+          placeholder="3 x 8-12">
+      </td>
+      <td>
+        <button class="delete-exercise" data-delete-exercise="${exercise.id}" title="Remove exercise">×</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+dayTabsEl.addEventListener("click", e => {
+  const tab = e.target.closest("[data-day-index]");
+  if (!tab) return;
+  currentDayIndex = Number(tab.dataset.dayIndex);
+  renderSchedule();
+});
+
+document.getElementById("addExercise").addEventListener("click", () => {
+  const day = state.pplSchedule[currentDayIndex];
+  day.exercises.push(ex("New exercise", "3 x 10-12"));
+  saveState();
+  renderSchedule();
+});
+
+scheduleBody.addEventListener("input", e => {
+  const input = e.target.closest("[data-exercise]");
+  if (!input) return;
+
+  const day = state.pplSchedule[currentDayIndex];
+  const exercise = day.exercises.find(x => x.id === input.dataset.exercise);
+  if (!exercise) return;
+
+  if (input.classList.contains("name-input")) {
+    exercise.name = input.value;
+  } else {
+    exercise.sets = input.value;
+  }
+});
+
+scheduleBody.addEventListener("change", () => {
+  saveState();
+});
+
+scheduleBody.addEventListener("click", e => {
+  const deleteBtn = e.target.closest("[data-delete-exercise]");
+  if (!deleteBtn) return;
+
+  const day = state.pplSchedule[currentDayIndex];
+  const id = deleteBtn.dataset.deleteExercise;
+  const exercise = day.exercises.find(x => x.id === id);
+
+  if (exercise && confirm(`Remove "${exercise.name}"?`)) {
+    day.exercises = day.exercises.filter(x => x.id !== id);
+    saveState();
+    renderSchedule();
+  }
+});
+
 function escapeHtml(value) {
-  return value.replace(/[&<>"']/g, char => ({
+  return String(value).replace(/[&<>"']/g, char => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
     "'": "&#039;"
   }[char]));
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value);
 }
 
 render();

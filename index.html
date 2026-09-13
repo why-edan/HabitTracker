@@ -11,65 +11,115 @@
 </head>
 <body>
   <main class="app">
-    <header class="topbar">
-      <div>
-        <div class="eyebrow">PERSONAL DASHBOARD</div>
-        <h1>My Habits</h1>
-        <p id="summary">Build consistency, one day at a time.</p>
-      </div>
 
-      <div class="month-controls">
-        <button id="prevMonth" class="nav-btn" aria-label="Previous month">‹</button>
+    <div id="habitView">
+      <header class="topbar">
         <div>
-          <div id="monthLabel" class="month-label"></div>
-          <div id="yearLabel" class="year-label"></div>
+          <div class="eyebrow">PERSONAL DASHBOARD</div>
+          <h1>My Habits</h1>
+          <p id="summary">Build consistency, one day at a time.</p>
         </div>
-        <button id="nextMonth" class="nav-btn" aria-label="Next month">›</button>
-      </div>
-    </header>
 
-    <section class="stats">
-      <div class="stat-card">
-        <span>MONTHLY COMPLETION</span>
-        <strong id="completion">0%</strong>
-      </div>
-      <div class="stat-card">
-        <span>BEST STREAK</span>
-        <strong id="bestStreak">0 days 🔥</strong>
-      </div>
-      <div class="stat-card">
-        <span>COMPLETED TODAY</span>
-        <strong id="todayCount">0 / 0</strong>
-      </div>
-    </section>
+        <div class="month-controls">
+          <button id="prevMonth" class="nav-btn" aria-label="Previous month">‹</button>
+          <div>
+            <div id="monthLabel" class="month-label"></div>
+            <div id="yearLabel" class="year-label"></div>
+          </div>
+          <button id="nextMonth" class="nav-btn" aria-label="Next month">›</button>
+        </div>
+      </header>
 
-    <section class="tracker-card">
-      <div class="tracker-toolbar">
+      <button id="scheduleBtn" class="schedule-btn">
+        <span class="schedule-btn-icon">🏋️</span>
+        <span>
+          <strong>PPL Schedule</strong>
+          <small>View &amp; edit your workout split</small>
+        </span>
+        <span class="schedule-btn-arrow">→</span>
+      </button>
+
+
+      <section class="stats">
+        <div class="stat-card">
+          <span>MONTHLY COMPLETION</span>
+          <strong id="completion">0%</strong>
+        </div>
+        <div class="stat-card">
+          <span>BEST STREAK</span>
+          <strong id="bestStreak">0 days 🔥</strong>
+        </div>
+        <div class="stat-card">
+          <span>COMPLETED TODAY</span>
+          <strong id="todayCount">0 / 0</strong>
+        </div>
+      </section>
+
+      <section class="tracker-card">
+        <div class="tracker-toolbar">
+          <div>
+            <h2>Daily Tracker</h2>
+            <span id="daysHint">Click a box to mark a habit complete.</span>
+          </div>
+          <button id="addHabit" class="primary-btn">+ Add habit</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="habitTable">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="legend">
+          <span><i class="legend-box done"></i> Completed</span>
+          <span><i class="legend-box today"></i> Today</span>
+          <span>Data is saved automatically in this browser.</span>
+        </div>
+      </section>
+
+      <footer>
+        <button id="todayBtn" class="text-btn">Jump to today</button>
+        <button id="resetBtn" class="text-btn danger">Reset all data</button>
+      </footer>
+    </div>
+
+    <div id="scheduleView" class="hidden">
+      <header class="topbar">
         <div>
-          <h2>Daily Tracker</h2>
-          <span id="daysHint">Click a box to mark a habit complete.</span>
+          <div class="eyebrow">WORKOUT PLAN</div>
+          <h1>PPL Schedule</h1>
+          <p>Pick a day, then edit exercises, sets and reps directly.</p>
         </div>
-        <button id="addHabit" class="primary-btn">+ Add habit</button>
-      </div>
+        <button id="backToHabits" class="secondary-btn">← Back to habits</button>
+      </header>
 
-      <div class="table-wrap">
-        <table id="habitTable">
-          <thead></thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <div class="day-tabs" id="dayTabs"></div>
 
-      <div class="legend">
-        <span><i class="legend-box done"></i> Completed</span>
-        <span><i class="legend-box today"></i> Today</span>
-        <span>Data is saved automatically in this browser.</span>
-      </div>
-    </section>
+      <section class="tracker-card">
+        <div class="tracker-toolbar">
+          <div>
+            <h2 id="dayTitle">Day 1</h2>
+            <span>Tap any field to edit. Changes save automatically.</span>
+          </div>
+          <button id="addExercise" class="primary-btn">+ Add exercise</button>
+        </div>
 
-    <footer>
-      <button id="todayBtn" class="text-btn">Jump to today</button>
-      <button id="resetBtn" class="text-btn danger">Reset all data</button>
-    </footer>
+        <div class="table-wrap">
+          <table id="scheduleTable">
+            <thead>
+              <tr>
+                <th class="ex-head">EXERCISE</th>
+                <th>SETS × REPS</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="scheduleBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
   </main>
 
   <div id="modal" class="modal hidden">
