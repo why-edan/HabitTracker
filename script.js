@@ -31,9 +31,10 @@ const defaultHabits = [
   { id: crypto.randomUUID(), name: "😴 7+ Hours Sleep" }
 ];
 
-let state = { habits: defaultHabits, checks: {} };
+let state = { habits: [], checks: {} };
 let viewDate = new Date();
 let isRemoteUpdate = false;
+let loaded = false;
 
 const monthLabel = document.getElementById("monthLabel");
 const yearLabel = document.getElementById("yearLabel");
@@ -62,11 +63,15 @@ onSnapshot(docRef, snap => {
     const data = snap.data();
     if (Array.isArray(data.habits) && data.checks) {
       state = data;
+      loaded = true;
       render();
     }
   } else {
     // First time ever — seed Firestore with defaults
+    state = { habits: defaultHabits, checks: {} };
+    loaded = true;
     setDoc(docRef, state);
+    render();
   }
 });
 
@@ -90,6 +95,10 @@ function isToday(year, month, day) {
 }
 
 function render() {
+  if (!loaded) {
+    tableBody.innerHTML = `<tr><td style="padding:20px;text-align:center;">Loading habits…</td></tr>`;
+    return;
+  }
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
   const days = daysInMonth(year, month);
