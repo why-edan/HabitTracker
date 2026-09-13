@@ -391,7 +391,7 @@ const habitView = document.getElementById("habitView");
 const scheduleView = document.getElementById("scheduleView");
 const dayTabsEl = document.getElementById("dayTabs");
 const dayTitleEl = document.getElementById("dayTitle");
-const scheduleBody = document.getElementById("scheduleBody");
+const scheduleList = document.getElementById("scheduleList");
 
 document.getElementById("scheduleBtn").addEventListener("click", () => {
   habitView.classList.add("hidden");
@@ -419,26 +419,23 @@ function renderSchedule() {
 
   dayTitleEl.textContent = day.title;
 
-  scheduleBody.innerHTML = day.exercises.map(exercise => `
-    <tr>
-      <td class="ex-name-cell">
+  scheduleList.innerHTML = day.exercises.map(exercise => `
+    <div class="ex-row" draggable="true" data-exercise-row="${exercise.id}">
+      <span class="ex-grip" title="Drag to reorder">⠿</span>
+      <div class="ex-name-cell">
         <input
           class="ex-input name-input"
           data-exercise="${exercise.id}"
           value="${escapeAttr(exercise.name)}"
           placeholder="Exercise name">
-      </td>
-      <td>
-        <input
-          class="ex-input sets-input"
-          data-exercise="${exercise.id}"
-          value="${escapeAttr(exercise.sets)}"
-          placeholder="3 x 8-12">
-      </td>
-      <td>
-        <button class="delete-exercise" data-delete-exercise="${exercise.id}" title="Remove exercise">×</button>
-      </td>
-    </tr>
+      </div>
+      <input
+        class="ex-input sets-input"
+        data-exercise="${exercise.id}"
+        value="${escapeAttr(exercise.sets)}"
+        placeholder="3 x 8-12">
+      <button class="delete-exercise" data-delete-exercise="${exercise.id}" title="Remove exercise">×</button>
+    </div>
   `).join("");
 }
 
@@ -456,7 +453,7 @@ document.getElementById("addExercise").addEventListener("click", () => {
   renderSchedule();
 });
 
-scheduleBody.addEventListener("input", e => {
+scheduleList.addEventListener("input", e => {
   const input = e.target.closest("[data-exercise]");
   if (!input) return;
 
@@ -471,11 +468,11 @@ scheduleBody.addEventListener("input", e => {
   }
 });
 
-scheduleBody.addEventListener("change", () => {
+scheduleList.addEventListener("change", () => {
   saveState();
 });
 
-scheduleBody.addEventListener("click", e => {
+scheduleList.addEventListener("click", e => {
   const deleteBtn = e.target.closest("[data-delete-exercise]");
   if (!deleteBtn) return;
 
@@ -488,6 +485,73 @@ scheduleBody.addEventListener("click", e => {
     saveState();
     renderSchedule();
   }
+});
+
+/* Drag-and-drop reordering with a FLIP animation */
+let draggingId = null;
+
+scheduleList.addEventListener("dragstart", e => {
+  const row = e.target.closest("[data-exercise-row]");
+  if (!row) return;
+  draggingId = row.dataset.exerciseRow;
+  row.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "move";
+});
+
+scheduleList.addEventListener("dragend", () => {
+  const row = scheduleList.querySelector(".dragging");
+  if (row) row.classList.remove("dragging");
+  scheduleList.querySelectorAll(".drop-target").forEach(r => r.classList.remove("drop-target"));
+  draggingId = null;
+});
+
+scheduleList.addEventListener("dragover", e => {
+  e.preventDefault();
+  const overRow = e.target.closest("[data-exercise-row]");
+  scheduleList.querySelectorAll(".drop-target").forEach(r => r.classList.remove("drop-target"));
+  if (overRow && overRow.dataset.exerciseRow !== draggingId) {
+    overRow.classList.add("drop-target");
+  }
+});
+
+scheduleList.addEventListener("drop", e => {
+  e.preventDefault();
+  const overRow = e.target.closest("[data-exercise-row]");
+  scheduleList.querySelectorAll(".drop-target").forEach(r => r.classList.remove("drop-target"));
+  if (!overRow || !draggingId || overRow.dataset.exerciseRow === draggingId) return;
+
+  const day = state.pplSchedule[currentDayIndex];
+  const fromIndex = day.exercises.findIndex(x => x.id === draggingId);
+  const toIndex = day.exercises.findIndex(x => x.id === overRow.dataset.exerciseRow);
+  if (fromIndex === -1 || toIndex === -1) return;
+
+  // Capture current row positions for the FLIP animation
+  const firstRects = new Map();
+  scheduleList.querySelectorAll("[data-exercise-row]").forEach(r => {
+    firstRects.set(r.dataset.exerciseRow, r.getBoundingClientRect());
+  });
+
+  const [moved] = day.exercises.splice(fromIndex, 1);
+  day.exercises.splice(toIndex, 0, moved);
+  saveState();
+  renderSchedule();
+
+  requestAnimationFrame(() => {
+    scheduleList.querySelectorAll("[data-exercise-row]").forEach(r => {
+      const first = firstRects.get(r.dataset.exerciseRow);
+      if (!first) return;
+      const last = r.getBoundingClientRect();
+      const deltaY = first.top - last.top;
+      if (deltaY) {
+        r.style.transform = `translateY(${deltaY}px)`;
+        r.style.transition = "transform 0s";
+        requestAnimationFrame(() => {
+          r.style.transform = "";
+          r.style.transition = "transform .18s ease";
+        });
+      }
+    });
+  });
 });
 
 function escapeHtml(value) {
