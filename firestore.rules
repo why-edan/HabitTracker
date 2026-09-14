@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // TEMP (no auth yet): shared doc, readable/writable by anyone with the
+    // Firebase config. Fine for a private repo / personal use only.
+    // Replace with the per-user rule below once login is added back.
+    match /habitTracker/sharedData {
+      allow read, write: if true;
+    }
+
+    // FUTURE (once Google sign-in is re-enabled): each user can only
+    // read/write their own document, keyed by their Firebase Auth uid.
+    // match /habitTracker/{uid} {
+    //   allow read, write: if request.auth != null && request.auth.uid == uid;
+    // }
+  }
+}

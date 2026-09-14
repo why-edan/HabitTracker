@@ -5,12 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Habit Tracker</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
+<link rel="icon" href="assets/icons/icon-192.png">
 <meta name="theme-color" content="#000000">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main class="app">
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-box">
+      <div class="eyebrow">PERSONAL DASHBOARD</div>
+      <h1>My Habits</h1>
+      <p>Sign in to view and edit your habits and workout schedule.</p>
+      <button id="googleSignIn" class="primary-btn auth-btn">Sign in with Google</button>
+      <p id="authError" class="auth-error hidden"></p>
+    </div>
+  </div>
+
+  <main class="app hidden" id="appRoot">
+    <div class="account-bar">
+      <span id="userEmail"></span>
+      <button id="signOutBtn" class="text-btn">Sign out</button>
+    </div>
+
 
     <div id="habitView">
       <header class="topbar">
@@ -126,6 +141,6 @@
     </div>
   </div>
 
-  <script type="module" src="script.js"></script>
+  <script type="module" src="js/script.js"></script>
 </body>
 </html>

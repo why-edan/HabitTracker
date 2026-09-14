@@ -6,20 +6,23 @@ import {
   setDoc,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { firebaseConfig } from "./firebase-config.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA4I0aYiQ2XVfUnDj2K_avXUtQa2hUIuZY",
-  authDomain: "habittracker-10264.firebaseapp.com",
-  projectId: "habittracker-10264",
-  storageBucket: "habittracker-10264.firebasestorage.app",
-  messagingSenderId: "1076569237929",
-  appId: "1:1076569237929:web:e6320b55672d187b873cb8",
-  measurementId: "G-VZGMWXRBRD"
-};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const docRef = doc(db, "habitTracker", "sharedData");
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+let docRef = null;
+let unsubscribeDoc = null;
 
 const defaultHabits = [
   { id: crypto.randomUUID(), name: "🌅 Wake up by 5:00" },
@@ -104,6 +107,7 @@ const bestStreakEl = document.getElementById("bestStreak");
 const todayCountEl = document.getElementById("todayCount");
 
 async function saveState() {
+  if (!docRef) return;
   isRemoteUpdate = true;
   try {
     await setDoc(docRef, state);
@@ -119,29 +123,32 @@ function normalizeState() {
 }
 
 // Live sync: whenever Firestore data changes (from any device), update UI
-onSnapshot(docRef, snap => {
-  if (isRemoteUpdate) {
-    isRemoteUpdate = false;
-    return;
-  }
-  if (snap.exists()) {
-    const data = snap.data();
-    if (Array.isArray(data.habits) && data.checks) {
-      state = data;
-      normalizeState();
+function subscribeToUserData(uid) {
+  docRef = doc(db, "habitTracker", uid);
+  unsubscribeDoc = onSnapshot(docRef, snap => {
+    if (isRemoteUpdate) {
+      isRemoteUpdate = false;
+      return;
+    }
+    if (snap.exists()) {
+      const data = snap.data();
+      if (Array.isArray(data.habits) && data.checks) {
+        state = data;
+        normalizeState();
+        loaded = true;
+        render();
+        renderSchedule();
+      }
+    } else {
+      // First time ever for this account — seed Firestore with defaults
+      state = { habits: defaultHabits, checks: {}, pplSchedule: defaultSchedule };
       loaded = true;
+      setDoc(docRef, state);
       render();
       renderSchedule();
     }
-  } else {
-    // First time ever — seed Firestore with defaults
-    state = { habits: defaultHabits, checks: {}, pplSchedule: defaultSchedule };
-    loaded = true;
-    setDoc(docRef, state);
-    render();
-    renderSchedule();
-  }
-});
+  });
+}
 
 function pad(n) {
   return String(n).padStart(2, "0");
@@ -568,4 +575,49 @@ function escapeAttr(value) {
   return escapeHtml(value);
 }
 
-render();
+/* ---------------- Auth ---------------- */
+
+const authScreen = document.getElementById("authScreen");
+const appRoot = document.getElementById("appRoot");
+const authError = document.getElementById("authError");
+const userEmailEl = document.getElementById("userEmail");
+
+document.getElementById("googleSignIn").addEventListener("click", async () => {
+  authError.classList.add("hidden");
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    console.error("Sign-in failed", e);
+    authError.textContent = "Sign-in failed. Please try again.";
+    authError.classList.remove("hidden");
+  }
+});
+
+document.getElementById("signOutBtn").addEventListener("click", () => {
+  signOut(auth);
+});
+
+onAuthStateChanged(auth, user => {
+  if (unsubscribeDoc) {
+    unsubscribeDoc();
+    unsubscribeDoc = null;
+  }
+
+  if (user) {
+    authScreen.classList.add("hidden");
+    appRoot.classList.remove("hidden");
+    userEmailEl.textContent = user.email || user.displayName || "";
+
+    loaded = false;
+    state = { habits: [], checks: {}, pplSchedule: [] };
+    render();
+
+    subscribeToUserData(user.uid);
+  } else {
+    appRoot.classList.add("hidden");
+    authScreen.classList.remove("hidden");
+    docRef = null;
+    loaded = false;
+    state = { habits: [], checks: {}, pplSchedule: [] };
+  }
+});
