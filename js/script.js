@@ -10,8 +10,6 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
@@ -587,27 +585,12 @@ const userEmailEl = document.getElementById("userEmail");
 document.getElementById("googleSignIn").addEventListener("click", async () => {
   authError.classList.add("hidden");
   try {
-    // Popups are unreliable on mobile browsers (blocked, or the popup
-    // closes before the handshake finishes). Redirect-based sign-in
-    // navigates the whole page instead and works consistently everywhere.
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isMobile) {
-      await signInWithRedirect(auth, provider);
-    } else {
-      await signInWithPopup(auth, provider);
-    }
+    await signInWithPopup(auth, provider);
   } catch (e) {
     console.error("Sign-in failed", e);
     authError.textContent = "Sign-in failed. Please try again.";
     authError.classList.remove("hidden");
   }
-});
-
-// Pick up the result after a redirect-based sign-in (mobile flow above)
-getRedirectResult(auth).catch(e => {
-  console.error("Redirect sign-in failed", e);
-  authError.textContent = "Sign-in failed. Please try again.";
-  authError.classList.remove("hidden");
 });
 
 document.getElementById("signOutBtn").addEventListener("click", () => {
