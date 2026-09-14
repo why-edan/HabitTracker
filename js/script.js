@@ -572,11 +572,10 @@ function escapeAttr(value) {
   return escapeHtml(value);
 }
 
-// AUTH DISABLED — import { SITE_PASSCODE } from "./passcode-config.js";
+import { SITE_PASSCODE } from "./passcode-config.js";
 
+/* ---------------- Lock screen ---------------- */
 
-/* ---------------- Lock screen (DISABLED) ---------------- */
-/* To re-enable: remove the bypass block below and uncomment everything here
 
 const authScreen = document.getElementById("authScreen");
 const appRoot = document.getElementById("appRoot");
@@ -617,13 +616,27 @@ function lock() {
   authScreen.classList.remove("hidden");
 }
 
+function showApp() {
+  console.log("[lock] showApp running");
+  authScreen.classList.add("hidden");
+  appRoot.classList.remove("hidden");
+  loaded = false;
+  state = { habits: [], checks: {}, pplSchedule: [] };
+  render();
+  subscribeToUserData();
+}
 authForm.addEventListener("submit", (e) => {
   e.preventDefault();
   authError.classList.add("hidden");
+
   const entered = authPasswordInput.value.trim();
+  console.log("[lock] submit fired, entered length:", entered.length);
+
   if (entered === SITE_PASSCODE) {
+    console.log("[lock] passcode correct, unlocking");
     unlock(rememberDeviceInput.checked);
   } else {
+    console.log("[lock] passcode incorrect");
     authError.textContent = "Wrong passcode.";
     authError.classList.remove("hidden");
     authPasswordInput.value = "";
@@ -632,35 +645,15 @@ authForm.addEventListener("submit", (e) => {
 
 document.getElementById("signOutBtn").addEventListener("click", lock);
 
+// Quiet, invisible auth so Firestore rules (auth != null) are satisfied.
+// No sign-in UI, no accounts — the passcode above is the only gate the
+// user sees.
 signInAnonymously(auth).catch(err => {
   console.error("Anonymous auth failed", err);
 });
 
 onAuthStateChanged(auth, user => {
   if (user && isUnlocked()) {
-    showApp();
-  }
-});
-
-*/
-
-/* ---------------- AUTH BYPASS (remove when re-enabling lock screen) ---------------- */
-
-function showApp() {
-  document.getElementById("authScreen").classList.add("hidden");
-  document.getElementById("appRoot").classList.remove("hidden");
-  loaded = false;
-  state = { habits: [], checks: {}, pplSchedule: [] };
-  render();
-  subscribeToUserData();
-}
-
-signInAnonymously(auth).catch(err => {
-  console.error("Anonymous auth failed", err);
-});
-
-onAuthStateChanged(auth, user => {
-  if (user) {
     showApp();
   }
 });
