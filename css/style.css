@@ -816,15 +816,12 @@ footer {
   }
 
   .ex-row {
-    display: grid;
-    grid-template-columns: 22px 1fr auto;
-    grid-template-areas:
-      "grip name delete"
-      "sets sets sets";
-    row-gap: 8px;
-    column-gap: 10px;
-    align-items: center;
-  }
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) minmax(90px, auto) auto;
+  grid-template-areas: "grip name sets delete";
+  column-gap: 10px;
+  align-items: center;
+}
 
   .ex-grip {
     grid-area: grip;
@@ -840,9 +837,13 @@ footer {
   }
 
   .ex-input.sets-input {
-    grid-area: sets;
-    width: 100%;
-  }
+  grid-area: sets;
+  width: 100%;
+  min-width: 90px;
+  max-width: 120px;
+  text-align: center;
+  white-space: nowrap;
+}
 
   .delete-exercise {
     grid-area: delete;
