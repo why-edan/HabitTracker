@@ -1,8 +1,12 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /habitTracker/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    // Single shared doc, gated by the client-side passcode screen.
+    // Any signed-in user (including anonymous) can read/write it —
+    // there's no per-account isolation anymore, since this is a
+    // single-user app behind a passcode instead of real accounts.
+    match /habitTracker/shared {
+      allow read, write: if request.auth != null;
     }
   }
 }

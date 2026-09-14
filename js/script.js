@@ -8,10 +8,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 import {
   getAuth,
-  GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
-  signOut,
+  signInAnonymously,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 import { firebaseConfig } from "./firebase-config.js";
@@ -20,7 +17,6 @@ import { firebaseConfig } from "./firebase-config.js";
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
 
 let docRef = null;
 let unsubscribeDoc = null;
@@ -124,8 +120,8 @@ function normalizeState() {
 }
 
 // Live sync: whenever Firestore data changes (from any device), update UI
-function subscribeToUserData(uid) {
-  docRef = doc(db, "habitTracker", uid);
+function subscribeToUserData() {
+  docRef = doc(db, "habitTracker", "shared");
   unsubscribeDoc = onSnapshot(docRef, snap => {
     if (isRemoteUpdate) {
       isRemoteUpdate = false;
@@ -576,56 +572,88 @@ function escapeAttr(value) {
   return escapeHtml(value);
 }
 
-/* ---------------- Auth ---------------- */
+import { SITE_PASSCODE } from "./passcode-config.js";
+
+/* ---------------- Lock screen ---------------- */
+
 
 const authScreen = document.getElementById("authScreen");
 const appRoot = document.getElementById("appRoot");
 const authError = document.getElementById("authError");
-const userEmailEl = document.getElementById("userEmail");
 
-document.getElementById("googleSignIn").addEventListener("click", async () => {
-  authError.classList.add("hidden");
-  try {
-    await signInWithRedirect(auth, provider);
-  } catch (e) {
-    console.error("Sign-in failed", e);
-    authError.textContent = "Sign-in failed. Please try again.";
-    authError.classList.remove("hidden");
+const authForm = document.getElementById("authForm");
+const authPasswordInput = document.getElementById("authPassword");
+const rememberDeviceInput = document.getElementById("rememberDevice");
+
+const UNLOCK_KEY = "habitTrackerUnlocked";
+
+function isUnlocked() {
+  return localStorage.getItem(UNLOCK_KEY) === "1" ||
+         sessionStorage.getItem(UNLOCK_KEY) === "1";
+}
+
+function unlock(remember) {
+  if (remember) {
+    localStorage.setItem(UNLOCK_KEY, "1");
+  } else {
+    sessionStorage.setItem(UNLOCK_KEY, "1");
   }
-});
+  showApp();
+}
 
-// Pick up the result after the redirect back from Google
-getRedirectResult(auth).catch(e => {
-  console.error("Redirect sign-in failed", e);
-  authError.textContent = "Sign-in failed. Please try again.";
-  authError.classList.remove("hidden");
-});
-
-document.getElementById("signOutBtn").addEventListener("click", () => {
-  signOut(auth);
-});
-
-onAuthStateChanged(auth, user => {
+function lock() {
+  localStorage.removeItem(UNLOCK_KEY);
+  sessionStorage.removeItem(UNLOCK_KEY);
   if (unsubscribeDoc) {
     unsubscribeDoc();
     unsubscribeDoc = null;
   }
+  docRef = null;
+  loaded = false;
+  state = { habits: [], checks: {}, pplSchedule: [] };
+  authForm.reset();
+  appRoot.classList.add("hidden");
+  authScreen.classList.remove("hidden");
+}
 
-  if (user) {
-    authScreen.classList.add("hidden");
-    appRoot.classList.remove("hidden");
-    userEmailEl.textContent = user.email || user.displayName || "";
+function showApp() {
+  console.log("[lock] showApp running");
+  authScreen.classList.add("hidden");
+  appRoot.classList.remove("hidden");
+  loaded = false;
+  state = { habits: [], checks: {}, pplSchedule: [] };
+  render();
+  subscribeToUserData();
+}
+authForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  authError.classList.add("hidden");
 
-    loaded = false;
-    state = { habits: [], checks: {}, pplSchedule: [] };
-    render();
+  const entered = authPasswordInput.value.trim();
+  console.log("[lock] submit fired, entered length:", entered.length);
 
-    subscribeToUserData(user.uid);
+  if (entered === SITE_PASSCODE) {
+    console.log("[lock] passcode correct, unlocking");
+    unlock(rememberDeviceInput.checked);
   } else {
-    appRoot.classList.add("hidden");
-    authScreen.classList.remove("hidden");
-    docRef = null;
-    loaded = false;
-    state = { habits: [], checks: {}, pplSchedule: [] };
+    console.log("[lock] passcode incorrect");
+    authError.textContent = "Wrong passcode.";
+    authError.classList.remove("hidden");
+    authPasswordInput.value = "";
+  }
+});
+
+document.getElementById("signOutBtn").addEventListener("click", lock);
+
+// Quiet, invisible auth so Firestore rules (auth != null) are satisfied.
+// No sign-in UI, no accounts — the passcode above is the only gate the
+// user sees.
+signInAnonymously(auth).catch(err => {
+  console.error("Anonymous auth failed", err);
+});
+
+onAuthStateChanged(auth, user => {
+  if (user && isUnlocked()) {
+    showApp();
   }
 });

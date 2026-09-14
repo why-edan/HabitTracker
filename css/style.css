@@ -376,7 +376,7 @@ footer {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .modal-box {
@@ -670,6 +670,39 @@ footer {
     width: 185px;
     min-width: 185px;
   }
+
+  .ex-row {
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    grid-template-areas:
+      "grip name delete"
+      "sets sets sets";
+    row-gap: 8px;
+    column-gap: 10px;
+    align-items: center;
+  }
+
+  .ex-grip {
+    grid-area: grip;
+  }
+
+  .ex-name-cell {
+    grid-area: name;
+    min-width: 0;
+  }
+
+  .ex-input {
+    font-size: 16px;
+  }
+
+  .ex-input.sets-input {
+    grid-area: sets;
+    width: 100%;
+  }
+
+  .delete-exercise {
+    grid-area: delete;
+  }
 }
 
 .auth-screen {
@@ -706,6 +739,52 @@ footer {
 
 .auth-btn {
   width: 100%;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.auth-form input[type="email"],
+.auth-form input[type="password"] {
+  width: 100%;
+  background: #0e1115;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  padding: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.auth-form input[type="email"]:focus,
+.auth-form input[type="password"]:focus {
+  border-color: var(--accent);
+}
+
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.remember-row input[type="checkbox"] {
+  width: auto;
+  accent-color: var(--accent);
+}
+
+.auth-toggle {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 14px;
+  font-size: 12px;
 }
 
 .auth-error {
