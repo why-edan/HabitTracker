@@ -100,6 +100,7 @@ const yearLabel = document.getElementById("yearLabel");
 const tableHead = document.querySelector("#habitTable thead");
 const tableBody = document.querySelector("#habitTable tbody");
 const completionEl = document.getElementById("completion");
+const completionRingEl = document.getElementById("completionRing");
 const bestStreakEl = document.getElementById("bestStreak");
 const todayCountEl = document.getElementById("todayCount");
 
@@ -254,7 +255,9 @@ function updateStats(year, month, days) {
     }
   });
 
-  completionEl.textContent = total ? `${Math.round((completed / total) * 100)}%` : "0%";
+  const pct = total ? Math.round((completed / total) * 100) : 0;
+  completionEl.textContent = `${pct}%`;
+  if (completionRingEl) completionRingEl.style.setProperty("--pct", pct);
 
   const now = new Date();
   let todayCount = 0;
@@ -265,7 +268,7 @@ function updateStats(year, month, days) {
   }
   todayCountEl.textContent = `${todayCount} / ${state.habits.length}`;
 
-  bestStreakEl.textContent = `${calculateBestStreak()} days 🔥`;
+  bestStreakEl.textContent = `${calculateBestStreak()} days`;
 }
 
 function calculateBestStreak() {

@@ -12,6 +12,7 @@
 <body>
   <div id="authScreen" class="auth-screen">
     <div class="auth-box">
+      <div class="auth-icon">🔒</div>
       <div class="eyebrow">PERSONAL DASHBOARD</div>
       <h1>My Habits</h1>
       <p>Enter the passcode to view and edit your habits and workout schedule.</p>
@@ -33,7 +34,7 @@
 
   <main class="app hidden" id="appRoot">
     <div class="account-bar">
-      <button id="signOutBtn" class="text-btn">Lock</button>
+      <button id="signOutBtn" class="text-btn">🔒 Lock</button>
     </div>
 
 
@@ -66,16 +67,29 @@
 
 
       <section class="stats">
-        <div class="stat-card">
-          <span>MONTHLY COMPLETION</span>
-          <strong id="completion">0%</strong>
+        <div class="stat-card ring-card">
+          <div class="ring" id="completionRing">
+            <div class="ring-inner">
+              <strong id="completion">0%</strong>
+              <span>this month</span>
+            </div>
+          </div>
+          <span class="ring-label">MONTHLY COMPLETION</span>
         </div>
-        <div class="stat-card">
-          <span>BEST STREAK</span>
-          <strong id="bestStreak">0 days 🔥</strong>
+
+        <div class="stat-card streak-card streak-red">
+          <div class="stat-top">
+            <span class="label">BEST STREAK</span>
+            <span class="badge-dot">🔥</span>
+          </div>
+          <strong id="bestStreak">0 days</strong>
         </div>
-        <div class="stat-card">
-          <span>COMPLETED TODAY</span>
+
+        <div class="stat-card streak-card streak-purple">
+          <div class="stat-top">
+            <span class="label">COMPLETED TODAY</span>
+            <span class="badge-dot">✓</span>
+          </div>
           <strong id="todayCount">0 / 0</strong>
         </div>
       </section>
@@ -104,7 +118,7 @@
       </section>
 
       <footer>
-        <button id="todayBtn" class="text-btn">Jump to today</button>
+        <button id="todayBtn" class="text-btn">📅 Jump to today</button>
         <button id="resetBtn" class="text-btn danger">Reset all data</button>
       </footer>
     </div>
