@@ -817,15 +817,18 @@ footer {
 
   .ex-row {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) clamp(64px, 26vw, 110px) auto;
+  grid-template-columns: 16px minmax(0, 1fr) clamp(56px, 21vw, 92px) 16px;
   grid-template-areas: "grip name sets delete";
-  column-gap: 8px;
+  column-gap: 6px;
   align-items: center;
-  padding: 11px 10px;
+  padding: 10px 8px;
 }
 
   .ex-grip {
     grid-area: grip;
+    width: 16px;
+    font-size: 13px;
+    letter-spacing: 1px;
   }
 
   .ex-name-cell {
@@ -838,32 +841,34 @@ footer {
   }
 
   .ex-input.name-input {
-    padding: 10px 12px;
+    padding: 9px 8px;
     text-overflow: ellipsis;
   }
 
   .ex-input.sets-input {
   grid-area: sets;
   width: 100%;
-  padding: 10px 8px;
+  padding: 9px 4px;
   text-align: center;
   white-space: nowrap;
 }
 
   .delete-exercise {
     grid-area: delete;
+    width: 16px;
+    font-size: 15px;
   }
 }
 
 @media (max-width: 380px) {
   .ex-row {
-    column-gap: 6px;
-    padding: 10px 8px;
+    column-gap: 5px;
+    padding: 9px 6px;
   }
 
   .ex-input {
     font-size: 15px;
-    padding: 9px 10px;
+    padding: 8px 6px;
   }
 }
 
