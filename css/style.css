@@ -620,12 +620,12 @@ footer {
 .ex-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 13px;
   background: var(--panel-2);
   border: 1px solid var(--border-light);
   border-radius: var(--r-md);
-  padding: 11px 14px;
-  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+  padding: 11px 13px;
+  transition: border-color .15s ease, opacity .18s ease, box-shadow .18s ease;
 }
 
 .ex-row.dragging {
@@ -636,61 +636,92 @@ footer {
   box-shadow: 0 0 0 2px var(--purple);
 }
 
-.ex-grip {
+.ex-order {
   flex: none;
-  width: 22px;
-  text-align: center;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--panel-3);
   color: var(--muted);
-  font-size: 16px;
-  letter-spacing: 2px;
+  font-size: 11px;
+  font-weight: 700;
   cursor: grab;
   user-select: none;
   touch-action: none;
 }
 
-.ex-grip:active {
+.ex-order:active {
   cursor: grabbing;
 }
 
-.ex-name-cell {
+.ex-fields {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .ex-input {
   width: 100%;
-  background: #0e0e11;
-  border: 1px solid var(--border);
-  border-radius: var(--r-pill);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm);
   color: var(--text);
-  padding: 10px 14px;
+  padding: 3px 6px;
+  margin: 0 -6px;
   outline: none;
   font: inherit;
-  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background .12s ease;
+}
+
+.ex-input:hover {
+  background: rgba(255, 255, 255, .04);
 }
 
 .ex-input:focus {
-  border-color: var(--purple);
+  background: var(--accent-soft);
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.ex-input.name-input {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -.1px;
 }
 
 .ex-input.sets-input {
-  flex: none;
-  width: clamp(100px, 22vw, 140px);
-  text-align: center;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--gold);
 }
 
 .delete-exercise {
   flex: none;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
+  border-radius: 50%;
   background: transparent;
-  color: var(--muted);
-  font-size: 17px;
+  color: var(--muted-2);
+  font-size: 16px;
   padding: 0;
+  transition: background .12s ease, color .12s ease;
 }
 
 .delete-exercise:hover {
+  background: rgba(255, 59, 92, .12);
   color: var(--danger);
 }
 
@@ -816,59 +847,23 @@ footer {
   }
 
   .ex-row {
-  display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) clamp(56px, 21vw, 92px) 16px;
-  grid-template-areas: "grip name sets delete";
-  column-gap: 6px;
-  align-items: center;
-  padding: 10px 8px;
-}
-
-  .ex-grip {
-    grid-area: grip;
-    width: 16px;
-    font-size: 13px;
-    letter-spacing: 1px;
-  }
-
-  .ex-name-cell {
-    grid-area: name;
-    min-width: 0;
-  }
-
-  .ex-input {
-    font-size: 16px;
+    padding: 11px 12px;
+    gap: 12px;
   }
 
   .ex-input.name-input {
-    padding: 9px 8px;
-    text-overflow: ellipsis;
+    font-size: 16px;
   }
 
   .ex-input.sets-input {
-  grid-area: sets;
-  width: 100%;
-  padding: 9px 4px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-  .delete-exercise {
-    grid-area: delete;
-    width: 16px;
-    font-size: 15px;
+    font-size: 13px;
   }
 }
 
 @media (max-width: 380px) {
   .ex-row {
-    column-gap: 5px;
-    padding: 9px 6px;
-  }
-
-  .ex-input {
-    font-size: 15px;
-    padding: 8px 6px;
+    gap: 10px;
+    padding: 10px 10px;
   }
 }
 
@@ -896,14 +891,11 @@ footer {
 }
 
 .auth-icon {
-  width: 54px;
-  height: 54px;
-  margin: 0 auto 14px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--red), var(--purple));
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 16px;
   display: grid;
   place-items: center;
-  font-size: 22px;
 }
 
 .auth-box h1 {
@@ -982,4 +974,127 @@ footer {
   margin-bottom: 14px;
   color: var(--muted);
   font-size: 12px;
+}
+
+/* ---------------- Opening splash ---------------- */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: var(--bg);
+  transition: opacity .5s ease, visibility .5s ease;
+}
+
+.splash-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% -10%, rgba(255, 59, 92, .18), transparent 42%),
+    radial-gradient(circle at 90% 0%, rgba(139, 92, 246, .18), transparent 40%);
+}
+
+.splash-ring {
+  position: relative;
+}
+
+.splash-title {
+  position: relative;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -.3px;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.splash-habits {
+  position: relative;
+  display: flex;
+  gap: 10px;
+}
+
+.splash-chip {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--panel-3);
+  border: 1.5px solid #38383e;
+  opacity: 0;
+  transform: scale(.5);
+}
+
+.splash.splash-hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .splash-progress {
+    animation: splashRing 1s cubic-bezier(.3, .9, .4, 1) .15s forwards;
+  }
+
+  .splash-check {
+    animation: splashCheck .4s ease .95s forwards;
+  }
+
+  .splash-title {
+    animation: splashFade .5s ease .45s forwards;
+  }
+
+  .splash-chip {
+    animation: splashChip .4s ease forwards;
+  }
+
+  .splash-chip:nth-child(1) { animation-delay: 1.05s; }
+  .splash-chip:nth-child(2) { animation-delay: 1.15s; }
+  .splash-chip:nth-child(3) { animation-delay: 1.25s; }
+  .splash-chip:nth-child(4) { animation-delay: 1.35s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-progress { stroke-dashoffset: 62; }
+  .splash-check { stroke-dashoffset: 0; }
+
+  .splash-title {
+    opacity: 1;
+    transform: none;
+  }
+
+  .splash-chip {
+    opacity: 1;
+    transform: scale(1);
+    background: linear-gradient(135deg, var(--teal), var(--purple));
+    border-color: transparent;
+  }
+}
+
+@keyframes splashRing {
+  from { stroke-dashoffset: 238.76; }
+  to { stroke-dashoffset: 62; }
+}
+
+@keyframes splashCheck {
+  from { stroke-dashoffset: 56; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes splashFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes splashChip {
+  from { opacity: 0; transform: scale(.5); }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    background: linear-gradient(135deg, var(--teal), var(--purple));
+    border-color: transparent;
+  }
 }

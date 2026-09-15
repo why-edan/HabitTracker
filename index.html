@@ -5,14 +5,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Habit Tracker</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="assets/icons/icon-192.png">
+<link rel="icon" href="assets/icons/icon-192.png?v=2">
 <meta name="theme-color" content="#000000">
-<link rel="stylesheet" href="css/style.css?v=2">
+<link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body>
+  <div id="splash" class="splash" aria-hidden="true">
+    <div class="splash-glow"></div>
+    <svg class="splash-ring" viewBox="0 0 100 100" width="86" height="86">
+      <circle class="splash-track" cx="50" cy="50" r="38" fill="none" stroke="#29292e" stroke-width="9"/>
+      <circle class="splash-progress" cx="50" cy="50" r="38" fill="none" stroke="url(#splashGrad)"
+              stroke-width="9" stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="238.76"
+              transform="rotate(-90 50 50)"/>
+      <path class="splash-check" d="M32 52 L45 64 L70 36" fill="none" stroke="#fff" stroke-width="9"
+            stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="56" stroke-dashoffset="56"/>
+      <defs>
+        <linearGradient id="splashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#2dd4bf"/>
+          <stop offset="100%" stop-color="#8b5cf6"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="splash-title">My Habits</div>
+    <div class="splash-habits">
+      <span class="splash-chip"></span>
+      <span class="splash-chip"></span>
+      <span class="splash-chip"></span>
+      <span class="splash-chip"></span>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var splash = document.getElementById("splash");
+      if (!splash) return;
+      var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var delay = reduced ? 450 : 1750;
+      setTimeout(function () {
+        splash.classList.add("splash-hide");
+        setTimeout(function () { splash.remove(); }, 550);
+      }, delay);
+    })();
+  </script>
+
   <div id="authScreen" class="auth-screen">
     <div class="auth-box">
-      <div class="auth-icon">🔒</div>
+      <div class="auth-icon">
+        <svg viewBox="0 0 100 100" width="40" height="40" aria-hidden="true">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#29292e" stroke-width="10"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="url(#authGrad)" stroke-width="10"
+                  stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="62"
+                  transform="rotate(-90 50 50)"/>
+          <path d="M32 52 L45 64 L70 36" fill="none" stroke="#fff" stroke-width="10"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="authGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2dd4bf"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
       <div class="eyebrow">PERSONAL DASHBOARD</div>
       <h1>My Habits</h1>
       <p>Enter the passcode to view and edit your habits and workout schedule.</p>
@@ -165,6 +217,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/script.js"></script>
+  <script type="module" src="js/script.js?v=7"></script>
 </body>
 </html>

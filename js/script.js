@@ -426,47 +426,24 @@ function renderSchedule() {
 
   dayTitleEl.textContent = day.title;
 
-  scheduleList.innerHTML = day.exercises.map(exercise => `
+  scheduleList.innerHTML = day.exercises.map((exercise, i) => `
     <div class="ex-row" draggable="true" data-exercise-row="${exercise.id}">
-      <span class="ex-grip" title="Drag to reorder">⠿</span>
-      <div class="ex-name-cell">
+      <span class="ex-order" title="Drag to reorder">${i + 1}</span>
+      <div class="ex-fields">
         <input
           class="ex-input name-input"
           data-exercise="${exercise.id}"
           value="${escapeAttr(exercise.name)}"
           placeholder="Exercise name">
+        <input
+          class="ex-input sets-input"
+          data-exercise="${exercise.id}"
+          value="${escapeAttr(exercise.sets)}"
+          placeholder="3 x 8-12">
       </div>
-      <input
-        class="ex-input sets-input"
-        data-exercise="${exercise.id}"
-        value="${escapeAttr(exercise.sets)}"
-        placeholder="3 x 8-12">
       <button class="delete-exercise" data-delete-exercise="${exercise.id}" title="Remove exercise">×</button>
     </div>
   `).join("");
-
-  document.querySelectorAll(".ex-input.name-input").forEach(fitNameInput);
-}
-
-/* Shrinks a name input's font-size (and padding) just enough for the
-   full text to fit on one line, instead of letting it truncate. */
-function fitNameInput(input) {
-  const max = 16;
-  const min = 9.5;
-  input.style.letterSpacing = "normal";
-  input.style.paddingLeft = "";
-  input.style.paddingRight = "";
-  input.style.fontSize = max + "px";
-  let size = max;
-  while (input.scrollWidth > input.clientWidth && size > min) {
-    size -= 0.5;
-    input.style.fontSize = size + "px";
-  }
-  if (input.scrollWidth > input.clientWidth) {
-    input.style.paddingLeft = "5px";
-    input.style.paddingRight = "5px";
-    input.style.letterSpacing = "-0.3px";
-  }
 }
 
 dayTabsEl.addEventListener("click", e => {
@@ -493,14 +470,9 @@ scheduleList.addEventListener("input", e => {
 
   if (input.classList.contains("name-input")) {
     exercise.name = input.value;
-    fitNameInput(input);
   } else {
     exercise.sets = input.value;
   }
-});
-
-window.addEventListener("resize", () => {
-  document.querySelectorAll(".ex-input.name-input").forEach(fitNameInput);
 });
 
 scheduleList.addEventListener("change", () => {
