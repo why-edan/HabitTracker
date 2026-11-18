@@ -35,6 +35,74 @@ function ex(name, sets) {
   return { id: crypto.randomUUID(), name, sets };
 }
 
+// Current 4-day plan + boxing day (appended below the original PPL days)
+function newPlanDays() {
+  return [
+    { id: crypto.randomUUID(), title: "Push", exercises: [
+      ex("Explosive Push-ups", "3 x 8"),
+      ex("Military Press", "3 x 8"),
+      ex("DB Chest Press", "4 x 10"),
+      ex("DB Flyes", "3 x 15"),
+      ex("Lateral Raises", "3 x 15"),
+      ex("Overhead Tricep Cable Extension", "3 x 12"),
+      ex("Cable Tricep Pushdown", "3 x 15"),
+      ex("Leg Raises", "3 x 15")
+    ]},
+    { id: crypto.randomUUID(), title: "Pull", exercises: [
+      ex("Heavy Deadlift", "3 x 5"),
+      ex("Lat Pulldown", "4 x 10"),
+      ex("Chest-Supported Rows", "3 x 10"),
+      ex("Reverse Pec Deck", "3 x 15"),
+      ex("Hammer Curls", "3 x 15"),
+      ex("Preacher Curls", "3 x 15"),
+      ex("Reverse EZ-Bar Forearm Curls", "3 x 12"),
+      ex("Smith Shrugs", "3 x 12"),
+      ex("Cable Crunch", "3 x 12"),
+      ex("Neck", "3 x 15")
+    ]},
+    { id: crypto.randomUUID(), title: "Legs", exercises: [
+      ex("Box Jump", "3 x 5"),
+      ex("Leg Press", "4 x 8-10"),
+      ex("Romanian Deadlift", "3 x 8-10"),
+      ex("Leg Curls", "3 x 10"),
+      ex("Leg Extension", "3 x 12"),
+      ex("Bulgarian Split Squats", "3 x 8 each"),
+      ex("Hip Adductor/Abductor Superset", "3 x 15"),
+      ex("Calf Raises", "3 x 20")
+    ]},
+    { id: crypto.randomUUID(), title: "Upper", exercises: [
+      ex("Landmine Rotation", "3 x 8"),
+      ex("Incline DB Press", "4 x 8"),
+      ex("Pec Dec", "3 x 10"),
+      ex("Lat Pulldown (Magnet Grip)", "3 x 10"),
+      ex("Single-Arm DB Row", "3 x 10"),
+      ex("Face Pulls", "3 x 15"),
+      ex("Lateral Raises", "3 x 15"),
+      ex("Overhead Tricep (DB)", "3 x 10"),
+      ex("Bayesian Curls", "3 x 15"),
+      ex("Wrist Superset", "3 x 15"),
+      ex("Cable Woodchop", "3 x 10"),
+      ex("Neck", "3 x 15")
+    ]},
+    { id: crypto.randomUUID(), title: "Boxing", exercises: [
+      ex("Landmine Rotations", "3 x 10 each side"),
+      ex("Weighted Half-Kneeling Switch", "3 x 10 each side"),
+      ex("HYROX Wall Ball Throws", "3 x 12"),
+      ex("Box Jumps", "3 x 6"),
+      ex("Kettlebell Swings", "3 x 12"),
+      ex("Explosive Incline Push-ups", "3 x 8"),
+      ex("Shadow Boxing", "2 min"),
+      ex("Heavy Bag Punches", "2 min"),
+      ex("Boxing Combinations", "2 min"),
+      ex("Shadow Boxing + Footwork", "2 min"),
+      ex("Heavy Bag", "2 min"),
+      ex("Suitcase Carry", "2 x 30 sec each side"),
+      ex("High Knees", "2 x 20 sec"),
+      ex("Incline Treadmill Walk", "5 min")
+    ]}
+  ];
+}
+
 const defaultSchedule = [
   { id: crypto.randomUUID(), title: "Day 1 - Push", exercises: [
     ex("Barbell Bench Press", "3 x 5-8"),
@@ -89,7 +157,7 @@ const defaultSchedule = [
   ]}
 ];
 
-let state = { habits: [], checks: {}, pplSchedule: [] };
+let state = { habits: [], checks: {}, pplSchedule: [], planSchedule: [] };
 let viewDate = new Date();
 let isRemoteUpdate = false;
 let loaded = false;
@@ -115,9 +183,21 @@ async function saveState() {
 }
 
 function normalizeState() {
+  let changed = false;
   if (!Array.isArray(state.pplSchedule) || !state.pplSchedule.length) {
     state.pplSchedule = defaultSchedule;
+  } else {
+    // clean out any new-plan days that were appended to the old PPL by an earlier version
+    const planTitles = new Set(newPlanDays().map(d => d.title));
+    const kept = state.pplSchedule.filter(d => !planTitles.has(d.title));
+    if (kept.length !== state.pplSchedule.length) { state.pplSchedule = kept; changed = true; }
   }
+  if (!Array.isArray(state.planSchedule) || !state.planSchedule.length) {
+    state.planSchedule = newPlanDays();
+    changed = true;
+  }
+  delete state.scheduleVersion;
+  if (changed) saveState();
 }
 
 // Live sync: whenever Firestore data changes (from any device), update UI
@@ -139,7 +219,7 @@ function subscribeToUserData() {
       }
     } else {
       // First time ever for this account — seed Firestore with defaults
-      state = { habits: defaultHabits, checks: {}, pplSchedule: defaultSchedule };
+      state = { habits: defaultHabits, checks: {}, pplSchedule: defaultSchedule, planSchedule: newPlanDays() };
       loaded = true;
       setDoc(docRef, state);
       render();
@@ -400,12 +480,21 @@ const dayTabsEl = document.getElementById("dayTabs");
 const dayTitleEl = document.getElementById("dayTitle");
 const scheduleList = document.getElementById("scheduleList");
 
-document.getElementById("scheduleBtn").addEventListener("click", () => {
+let activeKey = "pplSchedule";
+const sched = () => state[activeKey];
+const scheduleHeading = document.getElementById("scheduleHeading");
+
+function openSchedule(key, heading) {
+  activeKey = key;
+  scheduleHeading.textContent = heading;
   habitView.classList.add("hidden");
   scheduleView.classList.remove("hidden");
   currentDayIndex = 0;
   renderSchedule();
-});
+}
+
+document.getElementById("scheduleBtn").addEventListener("click", () => openSchedule("pplSchedule", "PPL Schedule"));
+document.getElementById("planBtn").addEventListener("click", () => openSchedule("planSchedule", "Current Plan"));
 
 document.getElementById("backToHabits").addEventListener("click", () => {
   scheduleView.classList.add("hidden");
@@ -413,12 +502,12 @@ document.getElementById("backToHabits").addEventListener("click", () => {
 });
 
 function renderSchedule() {
-  if (!loaded || !state.pplSchedule.length) return;
+  if (!loaded || !sched().length) return;
 
-  if (currentDayIndex >= state.pplSchedule.length) currentDayIndex = 0;
-  const day = state.pplSchedule[currentDayIndex];
+  if (currentDayIndex >= sched().length) currentDayIndex = 0;
+  const day = sched()[currentDayIndex];
 
-  dayTabsEl.innerHTML = state.pplSchedule.map((d, i) => `
+  dayTabsEl.innerHTML = sched().map((d, i) => `
     <button class="day-tab${i === currentDayIndex ? " active" : ""}" data-day-index="${i}">
       ${escapeHtml(d.title)}
     </button>
@@ -454,7 +543,7 @@ dayTabsEl.addEventListener("click", e => {
 });
 
 document.getElementById("addExercise").addEventListener("click", () => {
-  const day = state.pplSchedule[currentDayIndex];
+  const day = sched()[currentDayIndex];
   day.exercises.push(ex("New exercise", "3 x 10-12"));
   saveState();
   renderSchedule();
@@ -464,7 +553,7 @@ scheduleList.addEventListener("input", e => {
   const input = e.target.closest("[data-exercise]");
   if (!input) return;
 
-  const day = state.pplSchedule[currentDayIndex];
+  const day = sched()[currentDayIndex];
   const exercise = day.exercises.find(x => x.id === input.dataset.exercise);
   if (!exercise) return;
 
@@ -483,7 +572,7 @@ scheduleList.addEventListener("click", e => {
   const deleteBtn = e.target.closest("[data-delete-exercise]");
   if (!deleteBtn) return;
 
-  const day = state.pplSchedule[currentDayIndex];
+  const day = sched()[currentDayIndex];
   const id = deleteBtn.dataset.deleteExercise;
   const exercise = day.exercises.find(x => x.id === id);
 
@@ -527,7 +616,7 @@ scheduleList.addEventListener("drop", e => {
   scheduleList.querySelectorAll(".drop-target").forEach(r => r.classList.remove("drop-target"));
   if (!overRow || !draggingId || overRow.dataset.exerciseRow === draggingId) return;
 
-  const day = state.pplSchedule[currentDayIndex];
+  const day = sched()[currentDayIndex];
   const fromIndex = day.exercises.findIndex(x => x.id === draggingId);
   const toIndex = day.exercises.findIndex(x => x.id === overRow.dataset.exerciseRow);
   if (fromIndex === -1 || toIndex === -1) return;
@@ -613,7 +702,7 @@ function lock() {
   }
   docRef = null;
   loaded = false;
-  state = { habits: [], checks: {}, pplSchedule: [] };
+  state = { habits: [], checks: {}, pplSchedule: [], planSchedule: [] };
   authForm.reset();
   appRoot.classList.add("hidden");
   authScreen.classList.remove("hidden");
@@ -624,7 +713,7 @@ function showApp() {
   authScreen.classList.add("hidden");
   appRoot.classList.remove("hidden");
   loaded = false;
-  state = { habits: [], checks: {}, pplSchedule: [] };
+  state = { habits: [], checks: {}, pplSchedule: [], planSchedule: [] };
   render();
   subscribeToUserData();
 }
